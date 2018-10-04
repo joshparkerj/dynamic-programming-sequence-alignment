@@ -1,57 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-// I ran this code with the following inputs:
-//
-// From p.139 of the book:
-// AACAGTTACC
-// TAAGGTCA
-// Score: 7
-//
-// From p.149 of the book:
-// CCGGGTTACCA
-// GGAGTTCA
-// Score: 8
-//
-// TATAT
-// ATAT
-// Score: 2
-//
-// ACTG
-// TACT
-// Score: 4
-//
-// TACT
-// TACCT
-// Score: 2
-//
-// ATTCATTAGATTCATCGGTGCGATGC
-// ATATTAAATCAGGGTGCATC
-// Score: 14
-//
-// AAAAAAAAAAAA
-// AAAAAAAAAAAA
-// Score: 0
-//
-// TACGTACGTACGT
-// TACGTACGTAGA
-// Score: 3
-//
-// ACACACTTACACAC
-// AGACACTTAGACAC
-// Score: 2
-// 
-// AACAGTTCACC
-// TAAGGTCACC
-// Score: 4
-// 
-// TAACAGTTCACC
-// TAACGGTTCACC
-// Score: 1
-//
-// GTCCAGTCGGGTG
-// ACAGAACTTGTGC
-// Score: 11
 
 namespace DynamicProgramming
 {
@@ -71,6 +20,10 @@ namespace DynamicProgramming
                 seq2 = Console.ReadLine().ToCharArray();
 
                 var sa = new SequenceAlignment(seq1, seq2);
+
+                Console.WriteLine("Using the divide and conquer approach from the book, here is the cost of an optimal alignment:");
+                Console.WriteLine($"Score: {sa.Opt_caller()}");
+
                 Console.WriteLine("Using the dynamic programming approach as described in the book, here is an optimal alignment:");
                 Console.WriteLine($"Score: {sa.DP_Opt()}");
                 Console.WriteLine(sa.OptimalAlignment());
@@ -84,6 +37,7 @@ namespace DynamicProgramming
     {
         private char[] x;
         private char[] y;
+        private int DAC_BO;
 
         public SequenceAlignment(char[] seq1, char[] seq2)
         {
@@ -102,6 +56,8 @@ namespace DynamicProgramming
         
         public int[,] DP()
         {
+            int basic_operations = 0;
+
             int m = x.Length;
             int n = y.Length;
             int[,] optValues = new int[m + 1, n + 1];
@@ -113,6 +69,8 @@ namespace DynamicProgramming
                 j = n;
                 while (j >= 0)
                 {
+                    //this comparison is the basic operation:
+                    basic_operations++;
                     if (i == m)
                     {
                         optValues[i, j] = 2 * (n - j);
@@ -138,6 +96,7 @@ namespace DynamicProgramming
                 }
                 i--;
             }
+            Console.WriteLine($"Basic Operations: {basic_operations}");
             return optValues;
         }
 
@@ -145,11 +104,22 @@ namespace DynamicProgramming
         // Algorithm 3.12 Sequence Alignment Using Divide-and-Conquer.
         // It is very inefficient, however only minor changes are needed to convert this to the efficient dynamic programming algorithm.
         // As the book explains, it only gives the cost of an optimal alignment; it does not produce one.
+        public int Opt_caller()
+        {
+            DAC_BO = 0;
+            int score = Opt(0, 0);
+            Console.WriteLine($"Basic Operations: {DAC_BO}");
+            return score;
+        }
+
         public int Opt(int i, int j)
         {
             int m = x.Length;
             int n = y.Length;
             int penalty;
+
+            // this comparison is the basic operation:
+            DAC_BO++;
             if (i == m)
             {
                 return 2 * (n - j);
@@ -169,6 +139,7 @@ namespace DynamicProgramming
                     penalty = 1;
                 }
                 int[] answers = new int[] { penalty + Opt(i + 1, j + 1), 2 + Opt(i + 1, j), 2 + Opt(i, j + 1) };
+
                 return answers.Min();
             }
         }
